@@ -1,11 +1,11 @@
 (module
-  (memory $mem 1) (; NOTE: At least 1 page of memory ;)
+  (memory $mem 1) ;; NOTE: At least 1 page of memory
   (export "mem" (memory $mem))
 
   (; ----- PUBLIC FUNCTIONS ----- ;)
 
   (func $size (result i32)
-    i32.const 50 (; Number of cells ;)
+    i32.const 50 ;; Number of cells
   )
   (export "size" (func $size))
 
@@ -144,10 +144,10 @@
       i32.lt_s
       br_if $iter_x
     )
-    i32.const 0 (; Destination ;)
-    call $arrayLength (; Source ;)
-    call $arrayLength (; Length ;)
-    memory.copy (; Copy the new updated cells to the public facing buffer ;)
+    i32.const 0 ;; Destination
+    call $arrayLength ;; Source
+    call $arrayLength ;; Length
+    memory.copy ;; Copy the new updated cells to the public facing buffer
   )
 
   (func $updateCell (param $x i32) (param $y i32)
@@ -166,7 +166,7 @@
     local.get $isal
     (if
       (then
-        (; Currently ALIVE ;)
+        ;; Currently ALIVE
         local.get $neigs
         call $staysAlive
         (if
@@ -179,7 +179,7 @@
         )
       )
       (else
-        (; Currently DEAD ;)
+        ;; Currently DEAD
         local.get $neigs
         call $becomesAlive
         (if
@@ -195,7 +195,7 @@
   )
 
   (func $staysAlive (param $neigs i32) (result i32)
-      (; If it has two or three neighbors ;)
+      ;; If it has two or three neighbors
       local.get $neigs
       i32.const 2
       i32.eq
@@ -208,7 +208,7 @@
   )
 
   (func $becomesAlive (param $neigs i32) (result i32)
-      (; If it has three neighbors ;)
+      ;; If it has three neighbors
       local.get $neigs
       i32.const 3
       i32.eq
@@ -329,7 +329,7 @@
     local.get $x
     local.get $y
     call $indexUnsafe
-    i32.const 4 (; NOTE: To get a i32 offset and not only 1 byte ;)
+    i32.const 4 ;; NOTE: To get a i32 offset and not only 1 byte
     i32.mul
   )
 
@@ -355,7 +355,7 @@
   )
 
   (func $inRange (param $x i32) (param $y i32) (result i32)
-        (; Check x ;)
+        ;; Check x
         local.get $x
         i32.const 0
         i32.ge_s
@@ -366,7 +366,7 @@
 
         i32.and
 
-        (; Check y ;)
+        ;; Check y
         local.get $y
         i32.const 0
         i32.ge_s
@@ -377,7 +377,7 @@
 
         i32.and
 
-        (; Both need to be true ;)
+        ;; Both need to be true
         i32.and
   )
 
@@ -395,7 +395,7 @@
   (func $setNewCellUnsafe (param $x i32) (param $y i32) (param $value i32)
     (call $offsetFromCoordinates (local.get $x) (local.get $y))
     local.get $value
-    call $arrayLength (; Have an second array to store the new updated cells ;)
+    call $arrayLength ;; Have an second array to store the new updated cells
     i32.add
     i32.store
   )
