@@ -115,8 +115,102 @@
 
   (; ----- PRIVATE FUNCTIONS ----- ;)
 
+  (func $updateCells
+    (local $x i32)
+    (local $y i32)
+    (loop $iter_x
+      i32.const 0
+      set_local $y
+      (loop $iter_y
+          get_local $x
+          get_local $y
+          call $updateCell
 
-  (func $numNeighbors (export "test") (param $x i32) (param $y i32) (result i32)
+          get_local $y
+          i32.const 1
+          i32.add
+          tee_local $y
+
+          call $size
+          i32.lt_s
+          br_if $iter_y
+      )
+      get_local $x
+      i32.const 1
+      i32.add
+      tee_local $x
+
+      call $size
+      i32.lt_s
+      br_if $iter_x
+    )
+  )
+
+  (func $updateCell (param $x i32) (param $y i32)
+    (local $neigs i32)
+    (local $isal i32)
+    get_local $x
+    get_local $x
+    call $isAlive
+    set_local $isal
+
+    get_local $x
+    get_local $x
+    call $numNeighbors
+    set_local $neigs
+
+    get_local $isal
+    (if
+      (then
+        (; Currently ALIVE ;)
+        get_local $neigs
+        call $staysAlive
+        (if
+          (then
+            (call $setNewCellUnsafe (get_local $x) (get_local $y) (call $alive))
+          )
+          (else
+            (call $setNewCellUnsafe (get_local $x) (get_local $y) (call $dead))
+          )
+        )
+      )
+      (else
+        (; Currently DEAD ;)
+        get_local $neigs
+        call $becomesAlive
+        (if
+          (then
+            (call $setNewCellUnsafe (get_local $x) (get_local $y) (call $alive))
+          )
+          (else
+            (call $setNewCellUnsafe (get_local $x) (get_local $y) (call $dead))
+          )
+        )
+      )
+    )
+  )
+
+  (func $staysAlive (param $neigs i32) (result i32)
+      (; If it has two or three neighbors ;)
+      get_local $neigs
+      i32.const 2
+      i32.eq
+
+      get_local $neigs
+      i32.const 3
+      i32.eq
+
+      i32.or
+  )
+
+  (func $becomesAlive (param $neigs i32) (result i32)
+      (; If it has three neighbors ;)
+      get_local $neigs
+      i32.const 3
+      i32.eq
+  )
+
+  (func $numNeighbors (param $x i32) (param $y i32) (result i32)
     (local $res i32)
     (local $sum i32)
     i32.const 0
@@ -291,6 +385,14 @@
   (func $setCellUnsafe (param $x i32) (param $y i32) (param $value i32)
     (call $offsetFromCoordinates (get_local $x) (get_local $y))
     get_local $value
+    i32.store
+  )
+
+  (func $setNewCellUnsafe (param $x i32) (param $y i32) (param $value i32)
+    (call $offsetFromCoordinates (get_local $x) (get_local $y))
+    get_local $value
+    call $arrayLength (; Have an second array to store the new updated cells ;)
+    i32.add
     i32.store
   )
 )

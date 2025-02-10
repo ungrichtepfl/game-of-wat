@@ -18,7 +18,6 @@ function run() {
   console.log(wasm.setCell(0, 2, wasm.alive()));
   console.log(wasm.setCell(0, 1, wasm.alive()));
   console.log(wasm.setCell(0, 0, wasm.alive()));
-  console.log(wasm.test(1, 1));
 
 }
 
