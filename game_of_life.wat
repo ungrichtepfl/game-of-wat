@@ -1,11 +1,13 @@
 (module
+  (import "console" "log" (func $log (param i32)))
+
   (memory $mem 1) ;; NOTE: At least 1 page of memory
   (export "mem" (memory $mem))
 
   (; ----- PUBLIC FUNCTIONS ----- ;)
 
   (func $size (result i32)
-    i32.const 50 ;; Number of cells
+    i32.const 50 ;; Number of cells in one direction
   )
   (export "size" (func $size))
 
@@ -112,8 +114,14 @@
   )
   (export "dead" (func $dead))
 
-
-  (; ----- PRIVATE FUNCTIONS ----- ;)
+  (func $indexUnsafe (param $x i32) (param $y i32) (result i32)
+    local.get $y
+    call $size
+    i32.mul
+    local.get $x
+    i32.add
+  )
+  (export "indexUnsafe" (func $indexUnsafe))
 
   (func $updateCells
     (local $x i32)
@@ -144,22 +152,33 @@
       i32.lt_s
       br_if $iter_x
     )
+
     i32.const 0 ;; Destination
-    call $arrayLength ;; Source
-    call $arrayLength ;; Length
+    ;; Source
+    call $arrayLength
+    i32.const 4 ;; NOTE: to get an i32
+    i32.mul
+    ;; Length
+    call $arrayLength
+    i32.const 4 ;; NOTE: to get an i32
+    i32.mul
+
     memory.copy ;; Copy the new updated cells to the public facing buffer
   )
+  (export "updateCells" (func $updateCells))
+
+  (; ----- PRIVATE FUNCTIONS ----- ;)
 
   (func $updateCell (param $x i32) (param $y i32)
     (local $neigs i32)
     (local $isal i32)
     local.get $x
-    local.get $x
+    local.get $y
     call $isAlive
     local.set $isal
 
     local.get $x
-    local.get $x
+    local.get $y
     call $numNeighbors
     local.set $neigs
 
@@ -346,14 +365,6 @@
     )
   )
 
-  (func $indexUnsafe (param $x i32) (param $y i32) (result i32)
-    local.get $y
-    call $size
-    i32.mul
-    local.get $x
-    i32.add
-  )
-
   (func $inRange (param $x i32) (param $y i32) (result i32)
         ;; Check x
         local.get $x
@@ -362,7 +373,7 @@
 
         local.get $x
         call $size
-        i32.le_s
+        i32.lt_s
 
         i32.and
 
@@ -373,7 +384,7 @@
 
         local.get $y
         call $size
-        i32.le_s
+        i32.lt_s
 
         i32.and
 
@@ -393,10 +404,14 @@
   )
 
   (func $setNewCellUnsafe (param $x i32) (param $y i32) (param $value i32)
-    (call $offsetFromCoordinates (local.get $x) (local.get $y))
-    local.get $value
+    local.get $x
+    local.get $y
+    call $indexUnsafe
     call $arrayLength ;; Have an second array to store the new updated cells
     i32.add
+    i32.const 4 ;; NOTE: To get a i32 offset and not only 1 byte
+    i32.mul
+    local.get $value
     i32.store
   )
 )
