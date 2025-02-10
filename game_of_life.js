@@ -1,5 +1,5 @@
 
-let wasm;
+let game;
 let cellArray;
 
 const importObject = {
@@ -11,18 +11,16 @@ const importObject = {
 };
 
 async function setup() {
-  const response = await fetch("game_of_life.wasm");
-  const buffer = await response.arrayBuffer();
-  const wasm_module = await WebAssembly.compile(buffer);
-  const instance = await WebAssembly.instantiate(wasm_module, importObject);
-  wasm = instance.exports;
-  cellArray = new Uint32Array(wasm.mem.buffer, 0, wasm.arrayLength());
+  const obj = await WebAssembly.instantiateStreaming(fetch("game_of_life.wasm"), importObject);
+  game = obj.instance.exports;
+  cellArray = new Uint32Array(game.mem.buffer, 0, game.arrayLength());
 }
 
 function initRandom() {
-  for (let x = 0; x < wasm.size() - 30; ++x) {
-    for (let y = 0; y < wasm.size() - 30; ++y) {
-      cellArray[wasm.indexUnsafe(x, y)] = Math.random() > 0.5 ? wasm.alive() : wasm.dead();
+  const offset = 10;
+  for (let x = offset; x < game.size() - offset; ++x) {
+    for (let y = offset; y < game.size() - offset; ++y) {
+      cellArray[game.indexUnsafe(x, y)] = Math.random() > 0.5 ? game.alive() : game.dead();
     }
   }
 }
@@ -36,11 +34,11 @@ function render() {
 
   ctx.fillStyle = "black";
 
-  const width = canvas.width / wasm.size();
-  const height = canvas.height / wasm.size();
-  for (let x = 0; x < wasm.size(); ++x) {
-    for (let y = 0; y < wasm.size(); ++y) {
-      if (cellArray[wasm.indexUnsafe(x, y)] === wasm.alive()) {
+  const width = canvas.width / game.size();
+  const height = canvas.height / game.size();
+  for (let x = 0; x < game.size(); ++x) {
+    for (let y = 0; y < game.size(); ++y) {
+      if (cellArray[game.indexUnsafe(x, y)] === game.alive()) {
         ctx.fillRect(x * width, y * height, width, height);
       }
     }
@@ -61,7 +59,7 @@ function run() {
 
 function renderLoop() {
   sleep(1000 * UPDATE_SEC).then(() => {
-    wasm.updateCells();
+    game.updateCells();
     render();
     renderLoop();
   });
