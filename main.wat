@@ -61,20 +61,169 @@
   )
   (export "getCell" (func $getCell))
 
+  (func $isAlive (param $x i32) (param $y i32) (result i32)
+    (if (result i32) (call $inRange (get_local $x) (get_local $y))
+      (then
+        (block (result i32)
+          get_local $x
+          get_local $y
+          call $isAliveUnsafe
+        )
+      )
+      (else (i32.const -1))
+    )
+  )
+  (export "isAlive" (func $isAlive))
+
+  (func $isDead (param $x i32) (param $y i32) (result i32)
+    (if (result i32) (call $inRange (get_local $x) (get_local $y))
+      (then
+        (block (result i32)
+          get_local $x
+          get_local $y
+          call $isDeadUnsafe
+        )
+      )
+      (else (i32.const -1))
+    )
+  )
+  (export "isDead" (func $isDead))
 
   (func $isErr (param $val i32) (result i32)
     (i32.lt_s (get_local $val) (i32.const 0))
   )
   (export "isErr" (func $isErr))
 
-  (; ----- PRIVATE FUNCTIONS ----- ;)
+  (func $isNotErr (param $val i32) (result i32)
+    get_local $val
+    call $isErr
+    i32.const 1
+    i32.ne
+  )
+  (export "isNotErr" (func $isNotErr))
 
   (func $alive (result i32)
     i32.const 1
   )
+  (export "alive" (func $alive))
 
   (func $dead (result i32)
     i32.const 0
+  )
+  (export "dead" (func $dead))
+
+
+  (; ----- PRIVATE FUNCTIONS ----- ;)
+
+
+  (func $numNeighbors (export "test") (param $x i32) (param $y i32) (result i32)
+    (local $res i32)
+    (local $sum i32)
+    i32.const 0
+    set_local $sum
+    (call $isAlive (i32.add (get_local $x) (i32.const 1)) (i32.add (get_local $y) (i32.const 1)))
+    tee_local $res
+    call $isNotErr
+    (if
+      (then
+        get_local $sum
+        get_local $res
+        i32.add
+        set_local $sum
+      )
+    )
+    (call $isAlive (i32.add (get_local $x) (i32.const 1)) (i32.add (get_local $y) (i32.const 0)))
+    tee_local $res
+    call $isNotErr
+    (if
+      (then
+        get_local $sum
+        get_local $res
+        i32.add
+        set_local $sum
+      )
+    )
+    (call $isAlive (i32.add (get_local $x) (i32.const 1)) (i32.add (get_local $y) (i32.const -1)))
+    tee_local $res
+    call $isNotErr
+    (if
+      (then
+        get_local $sum
+        get_local $res
+        i32.add
+        set_local $sum
+      )
+    )
+    (call $isAlive (i32.add (get_local $x) (i32.const 0)) (i32.add (get_local $y) (i32.const 1)))
+    tee_local $res
+    call $isNotErr
+    (if
+      (then
+        get_local $sum
+        get_local $res
+        i32.add
+        set_local $sum
+      )
+    )
+    (call $isAlive (i32.add (get_local $x) (i32.const 0)) (i32.add (get_local $y) (i32.const -1)))
+    tee_local $res
+    call $isNotErr
+    (if
+      (then
+        get_local $sum
+        get_local $res
+        i32.add
+        set_local $sum
+      )
+    )
+    (call $isAlive (i32.add (get_local $x) (i32.const -1)) (i32.add (get_local $y) (i32.const 1)))
+    tee_local $res
+    call $isNotErr
+    (if
+      (then
+        get_local $sum
+        get_local $res
+        i32.add
+        set_local $sum
+      )
+    )
+    (call $isAlive (i32.add (get_local $x) (i32.const -1)) (i32.add (get_local $y) (i32.const 0)))
+    tee_local $res
+    call $isNotErr
+    (if
+      (then
+        get_local $sum
+        get_local $res
+        i32.add
+        set_local $sum
+      )
+    )
+    (call $isAlive (i32.add (get_local $x) (i32.const -1)) (i32.add (get_local $y) (i32.const -1)))
+    tee_local $res
+    call $isNotErr
+    (if
+      (then
+        get_local $sum
+        get_local $res
+        i32.add
+        set_local $sum
+      )
+    )
+    get_local $sum
+  )
+
+
+  (func $isAliveUnsafe (param $x i32) (param $y i32) (result i32)
+    call $alive
+    (call $getCellUnsafe (get_local $x) (get_local $y))
+    i32.eq
+  )
+
+
+  (func $isDeadUnsafe (param $x i32) (param $y i32) (result i32)
+    call $dead
+    (call $getCellUnsafe (get_local $x) (get_local $y))
+    i32.eq
   )
 
 

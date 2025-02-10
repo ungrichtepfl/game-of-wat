@@ -10,10 +10,16 @@ async function setup() {
 
 function run() {
   const cellArray = new Uint32Array(wasm.mem.buffer, 0, wasm.arrayLength());
-  console.log(wasm.index(3, 5));
-  console.log(wasm.setCell(3, 5, 10));
-  console.log(wasm.getCell(3, 5));
-  console.log(cellArray[wasm.index(3, 5)]);
+  console.log(wasm.setCell(2, 2, wasm.alive()));
+  console.log(wasm.setCell(2, 1, wasm.alive()));
+  console.log(wasm.setCell(2, 0, wasm.alive()));
+  console.log(wasm.setCell(1, 2, wasm.alive()));
+  console.log(wasm.setCell(1, 0, wasm.alive()));
+  console.log(wasm.setCell(0, 2, wasm.alive()));
+  console.log(wasm.setCell(0, 1, wasm.alive()));
+  console.log(wasm.setCell(0, 0, wasm.alive()));
+  console.log(wasm.test(1, 1));
+
 }
 
 setup().then(() => run());
