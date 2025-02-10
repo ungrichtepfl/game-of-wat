@@ -1,4 +1,3 @@
-
 (module
   (memory $mem 1) (; NOTE: At least 1 page of memory ;)
   (export "mem" (memory $mem))
@@ -22,11 +21,9 @@
     (if (result i32) (call $inRange (get_local $x) (get_local $y))
       (then
         (block (result i32)
-          get_local $y
-          call $size
-          i32.mul
           get_local $x
-          i32.add
+          get_local $y
+          call $indexUnsafe
         )
       )
       (else (i32.const -1))
@@ -35,64 +32,79 @@
   (export "index" (func $index))
 
   (func $setCell (param $x i32) (param $y i32) (param $value i32) (result i32)
-    (local $res i32)
-    (call $offsetFromCoordinates (get_local $x) (get_local $y))
-    tee_local $res
-    (if (result i32) (call $isErr (get_local $res))
-      (then (i32.const -1))
-      (else
+    (if (result i32) (call $inRange (get_local $x) (get_local $y))
+      (then
         (block (result i32)
-          get_local $res
+          get_local $x
+          get_local $y
           get_local $value
-          i32.store
+          call $setCellUnsafe
           i32.const 0
         )
       )
+      (else (i32.const -1))
     )
-    return
   )
   (export "setCell" (func $setCell))
 
   (func $getCell (param $x i32) (param $y i32) (result i32)
-    (local $res i32)
-    (call $offsetFromCoordinates (get_local $x) (get_local $y))
-    tee_local $res
-    (if (result i32) (call $isErr (get_local $res))
-      (then (i32.const -1))
-      (else
+    (if (result i32) (call $inRange (get_local $x) (get_local $y))
+      (then
         (block (result i32)
-          get_local $res
-          i32.load
+          get_local $x
+          get_local $y
+          call $getCellUnsafe
         )
       )
+      (else (i32.const -1))
     )
-    return
   )
   (export "getCell" (func $getCell))
 
-  (; ----- PRIVATE FUNCTIONS ----- ;)
 
   (func $isErr (param $val i32) (result i32)
     (i32.lt_s (get_local $val) (i32.const 0))
   )
+  (export "isErr" (func $isErr))
 
-  (func $offsetFromCoordinates (param $x i32) (param $y i32) (result i32)
-    (local $res i32)
+  (; ----- PRIVATE FUNCTIONS ----- ;)
+
+  (func $alive (result i32)
+    i32.const 1
+  )
+
+  (func $dead (result i32)
+    i32.const 0
+  )
+
+
+  (func $offsetFromCoordinatesUnsafe (param $x i32) (param $y i32) (result i32)
     get_local $x
     get_local $y
-    call $index
-    tee_local $res
-    (if (result i32) (call $isErr (get_local $res))
-      (then (i32.const -1))
-      (else
+    call $indexUnsafe
+    i32.const 4 (; NOTE: To get a i32 offset and not only 1 byte ;)
+    i32.mul
+  )
+
+  (func $offsetFromCoordinates (param $x i32) (param $y i32) (result i32)
+    (if (result i32) (call $inRange (get_local $x) (get_local $y))
+      (then
         (block (result i32)
-          get_local $res
-          i32.const 4 (; NOTE: To get a i32 offset and not only 1 byte ;)
-          i32.mul
+          get_local $x
+          get_local $y
+          call $offsetFromCoordinatesUnsafe
         )
       )
+      (else (i32.const -1))
     )
-    return
+  )
+
+  (func $indexUnsafe (param $x i32) (param $y i32) (result i32)
+    get_local $y
+    call $size
+    i32.mul
+    get_local $x
+    i32.add
   )
 
   (func $inRange (param $x i32) (param $y i32) (result i32)
@@ -120,5 +132,16 @@
 
         (; Both need to be true ;)
         i32.and
+  )
+
+  (func $getCellUnsafe (param $x i32) (param $y i32) (result i32)
+    (call $offsetFromCoordinates (get_local $x) (get_local $y))
+    i32.load
+  )
+
+  (func $setCellUnsafe (param $x i32) (param $y i32) (param $value i32)
+    (call $offsetFromCoordinates (get_local $x) (get_local $y))
+    get_local $value
+    i32.store
   )
 )
